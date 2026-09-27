@@ -11,7 +11,27 @@ const ShopContextProvider = ({ children }) => {
     const [search,setSearch] = useState('');
     const [showSearch,setShowSearch] = useState(false);
     const [cartItems,setCartItems] = useState({});
+    const [productList, setProductList] = useState(products);
     const navigate = useNavigate();
+
+    useEffect(() => {
+        const loadProducts = async () => {
+            try {
+                const response = await fetch('http://localhost:4000/api/product/list', {
+                    method: 'POST'
+                });
+                const data = await response.json();
+
+                if (data.success && Array.isArray(data.products)) {
+                    setProductList(data.products);
+                }
+            } catch (error) {
+                console.error('Could not load products from the backend:', error);
+            }
+        };
+
+        loadProducts();
+    }, []);
 
 
     const addToCart = async (itemId,size) => {
@@ -64,7 +84,7 @@ const ShopContextProvider = ({ children }) => {
     const getCartAmount = () => {
         let totalAmount = 0;
         for (const itemId in cartItems) {
-            const itemInfo = products.find((product) => product._id === itemId);
+            const itemInfo = productList.find((product) => product._id === itemId);
 
             if (!itemInfo) {
                 continue;
@@ -81,7 +101,7 @@ const ShopContextProvider = ({ children }) => {
 
 
     const value = {
-        products,
+        products: productList,
         currency,
         delivery_fee,
 
